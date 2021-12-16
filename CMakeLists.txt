@@ -11,8 +11,9 @@ project ( RTWeekend
   LANGUAGES CXX
 )
 
-# Set to c++11
-set ( CMAKE_CXX_STANDARD 11 )
+# Set to c++17
+set ( CMAKE_CXX_STANDARD 17 )
+set ( CMAKE_CXX_FLAGS "-g" )
 
 # Source
 set ( COMMON_ALL

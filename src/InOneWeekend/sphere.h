@@ -23,8 +23,8 @@ class sphere : public hittable {
         sphere(point3 cen, double r, shared_ptr<material> m)
             : center(cen), radius(r), mat_ptr(m) {};
 
-        pair<vec3, vec3> get_bounding_box() const override;
-        void compile() const override;
+        pair<point3, point3> get_bounding_box() const override;
+        void compile(int dim = 0) override;
         virtual bool hit(
             const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
@@ -35,15 +35,12 @@ class sphere : public hittable {
 };
 
 
-pair<vec3, vec3> sphere::get_bounding_box() const {
-    // Easy math
-    // TODO
+pair<point3, point3> sphere::get_bounding_box() const {
+    return {center - vec3(radius, radius, radius), center + vec3(radius, radius, radius)};
 }
 
-void sphere::compile() const {
-    // Does nothing
-    // TODO
-}
+// No work needed for leaf nodes in the BVH
+void sphere::compile(int dim) {}
 
 bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
     vec3 oc = r.origin() - center;

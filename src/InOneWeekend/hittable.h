@@ -32,8 +32,8 @@ struct hit_record {
 
 class hittable {
     public:
-        virtual pair<vec3, vec3> get_bounding_box() const = 0;
-        virtual void compile() const = 0;
+        virtual pair<point3, point3> get_bounding_box() const = 0;
+        virtual void compile(int dim = 0) = 0;
         virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
 };
 
