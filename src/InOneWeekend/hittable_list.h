@@ -111,25 +111,51 @@ void hittable_list::compile(int dim) {
     bounding_box = {mins, maxs};
 }
 
-bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& rec) const {
-    // TODO
-    // If is_leaf
-        // hit_record temp_rec;
-        // auto hit_anything = false;
-        // auto closest_so_far = t_max;
+bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& rec) const 
+{
+    // Do The algorithm on page 69 of https://www.cs.rochester.edu/courses/572/fall2021/decks/lect20-ray-tracing.pdf
+    hit_record temp_rec;
+    auto hit_anything = false;
+    auto closest_so_far = t_max;
 
-        // for (const auto& object : objects) {
-        //     if (object->hit(r, t_min, closest_so_far, temp_rec)) {
-        //         hit_anything = true;
-        //         closest_so_far = temp_rec.t;
-        //         rec = temp_rec;
-        //     }
-        // }
-        //
-        // return hit_anything;
-    // Else
-        // Do The algorithm on page 69 of https://www.cs.rochester.edu/courses/572/fall2021/decks/lect20-ray-tracing.pdf
+    if (!hit_the_box())
+    {
+        // TODO: write the code to check if the box is hitted.
+        return hit_anything;
+    }
+
+    if (is_leaf)
+    {
+        for (const auto &object : objects)
+        {
+            if (object->hit(r, t_min, closest_so_far, temp_rec))
+            {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+                rec = temp_rec;
+            }
+        }
+
+        return hit_anything;
+    }
+
+    // go through the two branches of the tree
+    for (const auto &list : objects)
+    {
+        // go through all the objects
+        for (const auto &object : list.objects)
+        {
+            if (object->hit(r, t_min, closest_so_far, temp_rec))
+            {
+                hit_anything = true;
+                closest_so_far = temp_rec.t;
+
+                rec = temp_rec;
+            }
+        }
+    }
+
+    return hit_anything;
 }
-
 
 #endif
