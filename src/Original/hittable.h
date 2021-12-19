@@ -1,3 +1,5 @@
+#ifndef HITTABLE_H
+#define HITTABLE_H
 //==============================================================================================
 // Originally written in 2016 by Peter Shirley <ptrshrl@gmail.com>
 //
@@ -11,27 +13,27 @@
 
 #include "rtweekend.h"
 
-#include <iostream>
-#include <iomanip>
-#include <math.h>
-#include <stdlib.h>
+class material;
 
 
-inline double pdf(double x) {
-    return  3*x*x/8;
-}
+struct hit_record {
+    point3 p;
+    vec3 normal;
+    shared_ptr<material> mat_ptr;
+    double t;
+    bool front_face;
 
-int main() {
-    int inside_circle = 0;
-    int inside_circle_stratified = 0;
-    int N = 1;
-
-    auto sum = 0.0;
-    for (int i = 0; i < N; i++) {
-        auto x = pow(random_double(0,8), 1./3.);
-        sum += x*x / pdf(x);
+    inline void set_face_normal(const ray& r, const vec3& outward_normal) {
+        front_face = dot(r.direction(), outward_normal) < 0;
+        normal = front_face ? outward_normal :-outward_normal;
     }
+};
 
-    std::cout << std::fixed << std::setprecision(12);
-    std::cout << "I = " << sum/N << '\n';
-}
+
+class hittable {
+    public:
+        virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const = 0;
+};
+
+
+#endif
