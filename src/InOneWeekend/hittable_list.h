@@ -170,38 +170,16 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
 
     if (!inter(r, t_min, t_max))
     {
-        // TODO: write the code to check if the box is hitted.
         return hit_anything;
     }
 
-    if (is_leaf)
+    for (const auto &object : objects)
     {
-        for (const auto &object : objects)
+        if (object->hit(r, t_min, closest_so_far, temp_rec))
         {
-            if (object->hit(r, t_min, closest_so_far, temp_rec))
-            {
-                hit_anything = true;
-                closest_so_far = temp_rec.t;
-                rec = temp_rec;
-            }
-        }
-
-        return hit_anything;
-    }
-
-    // go through the two branches of the tree
-    for (const auto &list : objects)
-    {
-        // go through all the objects
-        for (const auto &object : list.objects)
-        {
-            if (object->hit(r, t_min, closest_so_far, temp_rec))
-            {
-                hit_anything = true;
-                closest_so_far = temp_rec.t;
-
-                rec = temp_rec;
-            }
+            hit_anything = true;
+            closest_so_far = temp_rec.t;
+            rec = temp_rec;
         }
     }
 
