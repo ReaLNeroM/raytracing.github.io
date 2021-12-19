@@ -87,8 +87,8 @@ void hittable_list::compile(int dim) {
     if(objects.size() <= 3){
         // do not split hierarchy
     } else {
-        int dd = rand() % 3;
-        for(int trydim = dd; trydim < dd + 3; trydim++){
+        int rand_dim = rand() % 3;
+        for(int trydim = rand_dim; trydim < rand_dim + 3; trydim++){
             hittable_list left_split;
             hittable_list right_split;
 
@@ -117,7 +117,7 @@ void hittable_list::compile(int dim) {
 
             int n = objects.size();
             // if the split is good, we make an internal node
-            if(2 * (left_added + right_added) < 3 * n){
+            if(4 * left_added < 3 * n and 4 * right_added < 3 * n){
                 is_leaf = false;
                 // for(int i = 0; i < indent; i++){
                 //     cerr << ' ';
