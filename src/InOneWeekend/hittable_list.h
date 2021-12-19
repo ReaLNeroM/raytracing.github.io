@@ -47,52 +47,34 @@ pair<point3, point3> hittable_list::get_bounding_box() const {
 }
 
 bool hittable_list::inter(const ray& r, double t_min, double t_max) const{
+    point3 bounds[2];
+    bounds[0] = get_bounding_box().first;
+    bounds[1] = get_bounding_box().second;
     float tmin, tmax, tymin, tymax, tzmin, tzmax;
 
-    if (r.direction().x() >= 0)
-    {
+    tmin = (bounds[r.sign[0]].x() - r.orig.x()) * r.invdir.x();
+    tmax = (bounds[1-r.sign[0]].x() - r.orig.x()) * r.invdir.x();
+    tymin = (bounds[r.sign[1]].y() - r.orig.y()) * r.invdir.y();
+    tymax = (bounds[1-r.sign[1]].y() - r.orig.y()) * r.invdir.y();
 
-        tmin = (bounding_box.value().first.x() - r.origin().x()) / r.direction().x();
-        tmax = (bounding_box.value().second.x() - r.origin().x()) / r.direction().x();
-    }
-    else
-    {
-        tmin = (bounding_box.value().second.x() - r.origin().x()) / r.direction().x();
-        tmax = (bounding_box.value().first.x() - r.origin().x()) / r.direction().x();
-    }
-    if (r.direction().y() >= 0)
-    {
-        tymin = (bounding_box.value().first.y() - r.origin().y()) / r.direction().y();
-        tymax = (bounding_box.value().second.y() - r.origin().y()) / r.direction().y();
-    }
-    else
-    {
-        tymin = (bounding_box.value().second.y() - r.origin().y()) / r.direction().y();
-        tymax = (bounding_box.value().first.y() - r.origin().y()) / r.direction().y();
-    }
     if ((tmin > tymax) || (tymin > tmax))
         return false;
     if (tymin > tmin)
         tmin = tymin;
     if (tymax < tmax)
         tmax = tymax;
-    if (r.direction().z() >= 0)
-    {
-        tzmin = (bounding_box.value().first.z() - r.origin().z()) / r.direction().z();
-        tzmax = (bounding_box.value().second.z() - r.origin().z()) / r.direction().z();
-    }
-    else
-    {
-        tzmin = (bounding_box.value().second.z() - r.origin().z()) / r.direction().z();
-        tzmax = (bounding_box.value().first.z() - r.origin().z()) / r.direction().z();
-    }
+
+    tzmin = (bounds[r.sign[2]].z() - r.orig.z()) * r.invdir.z();
+    tzmax = (bounds[1-r.sign[2]].z() - r.orig.z()) * r.invdir.z();
+
     if ((tmin > tzmax) || (tzmin > tmax))
         return false;
     if (tzmin > tmin)
         tmin = tzmin;
     if (tzmax < tmax)
         tmax = tzmax;
-    return ((tmin < t_min) && (tmax > t_max));
+
+    return (t_min < tmax || tmin < t_max);
 }
 
 // Assumes each underlying object is a sphere
@@ -152,9 +134,9 @@ void hittable_list::compile(int dim) {
             mins.e[0] = min(mins.e[0], i_box.first.e[0]);
             mins.e[1] = min(mins.e[1], i_box.first.e[1]);
             mins.e[2] = min(mins.e[2], i_box.first.e[2]);
-            maxs.e[0] = min(maxs.e[0], i_box.second.e[0]);
-            maxs.e[1] = min(maxs.e[1], i_box.second.e[1]);
-            maxs.e[2] = min(maxs.e[2], i_box.second.e[2]);
+            maxs.e[0] = max(maxs.e[0], i_box.second.e[0]);
+            maxs.e[1] = max(maxs.e[1], i_box.second.e[1]);
+            maxs.e[2] = max(maxs.e[2], i_box.second.e[2]);
         }
     }
 
@@ -164,7 +146,6 @@ void hittable_list::compile(int dim) {
 bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& rec) const 
 {
     // Do The algorithm on page 69 of https://www.cs.rochester.edu/courses/572/fall2021/decks/lect20-ray-tracing.pdf
-    hit_record temp_rec;
     auto hit_anything = false;
     auto closest_so_far = t_max;
 
@@ -175,11 +156,10 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
 
     for (const auto &object : objects)
     {
-        if (object->hit(r, t_min, closest_so_far, temp_rec))
+        if (object->hit(r, t_min, closest_so_far, rec))
         {
             hit_anything = true;
-            closest_so_far = temp_rec.t;
-            rec = temp_rec;
+            closest_so_far = rec.t;
         }
     }
 

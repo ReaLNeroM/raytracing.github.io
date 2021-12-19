@@ -19,11 +19,21 @@ class ray {
         ray() {}
         ray(const point3& origin, const vec3& direction)
             : orig(origin), dir(direction), tm(0)
-        {}
+        {
+            invdir = vec3(1. / dir.e[0], 1. / dir.e[1], 1. / dir.e[2]);
+            sign[0] = (invdir.x() < 0);
+            sign[1] = (invdir.y() < 0);
+            sign[2] = (invdir.z() < 0);
+        }
 
         ray(const point3& origin, const vec3& direction, double time)
             : orig(origin), dir(direction), tm(time)
-        {}
+        {
+            invdir = vec3(1. / dir.e[0], 1. / dir.e[1], 1. / dir.e[2]);
+            sign[0] = (invdir.x() < 0);
+            sign[1] = (invdir.y() < 0);
+            sign[2] = (invdir.z() < 0);
+        }
 
         point3 origin() const  { return orig; }
         vec3 direction() const { return dir; }
@@ -36,6 +46,8 @@ class ray {
     public:
         point3 orig;
         vec3 dir;
+        vec3 invdir;
+        int sign[3];
         double tm;
 };
 
