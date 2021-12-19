@@ -109,8 +109,7 @@ void hittable_list::compile(int dim) {
                 if(i->get_bounding_box().first.e[trydim % 3] <= median){
                     left_split.add(i);
                     left_added++;
-                }
-                if(i->get_bounding_box().second.e[trydim % 3] >= median){
+                } else {
                     right_split.add(i);
                     right_added++;
                 }
