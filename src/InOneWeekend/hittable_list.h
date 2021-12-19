@@ -30,6 +30,7 @@ class hittable_list : public hittable  {
         void add(shared_ptr<hittable> object) { objects.push_back(object); }
         pair<point3, point3> get_bounding_box() const override;
         void compile(int dim = 0) override;
+        bool inter(const ray& r, double t_min, double t_max) const;
         virtual bool hit(
             const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
@@ -43,6 +44,55 @@ class hittable_list : public hittable  {
 pair<point3, point3> hittable_list::get_bounding_box() const {
     assert(bounding_box.has_value());
     return bounding_box.value();
+}
+
+bool hittable_list::inter(const ray& r, double t_min, double t_max) const{
+    float tmin, tmax, tymin, tymax, tzmin, tzmax;
+
+    if (r.direction().x() >= 0)
+    {
+
+        tmin = (bounding_box.value().first.x() - r.origin().x()) / r.direction().x();
+        tmax = (bounding_box.value().second.x() - r.origin().x()) / r.direction().x();
+    }
+    else
+    {
+        tmin = (bounding_box.value().second.x() - r.origin().x()) / r.direction().x();
+        tmax = (bounding_box.value().first.x() - r.origin().x()) / r.direction().x();
+    }
+    if (r.direction().y() >= 0)
+    {
+        tymin = (bounding_box.value().first.y() - r.origin().y()) / r.direction().y();
+        tymax = (bounding_box.value().second.y() - r.origin().y()) / r.direction().y();
+    }
+    else
+    {
+        tymin = (bounding_box.value().second.y() - r.origin().y()) / r.direction().y();
+        tymax = (bounding_box.value().first.y() - r.origin().y()) / r.direction().y();
+    }
+    if ((tmin > tymax) || (tymin > tmax))
+        return false;
+    if (tymin > tmin)
+        tmin = tymin;
+    if (tymax < tmax)
+        tmax = tymax;
+    if (r.direction().z() >= 0)
+    {
+        tzmin = (bounding_box.value().first.z() - r.origin().z()) / r.direction().z();
+        tzmax = (bounding_box.value().second.z() - r.origin().z()) / r.direction().z();
+    }
+    else
+    {
+        tzmin = (bounding_box.value().second.z() - r.origin().z()) / r.direction().z();
+        tzmax = (bounding_box.value().first.z() - r.origin().z()) / r.direction().z();
+    }
+    if ((tmin > tzmax) || (tzmin > tmax))
+        return false;
+    if (tzmin > tmin)
+        tmin = tzmin;
+    if (tzmax < tmax)
+        tmax = tzmax;
+    return ((tmin < t_min) && (tmax > t_max));
 }
 
 // Assumes each underlying object is a sphere
@@ -118,7 +168,7 @@ bool hittable_list::hit(const ray& r, double t_min, double t_max, hit_record& re
     auto hit_anything = false;
     auto closest_so_far = t_max;
 
-    if (!hit_the_box())
+    if (!inter(r, t_min, t_max))
     {
         // TODO: write the code to check if the box is hitted.
         return hit_anything;
