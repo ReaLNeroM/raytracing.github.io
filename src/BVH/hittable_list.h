@@ -15,6 +15,7 @@
 
 #include "hittable.h"
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 #include <optional>
@@ -77,6 +78,8 @@ bool hittable_list::inter(const ray& r, double t_min, double t_max) const{
     return (t_min < tmax || tmin < t_max);
 }
 
+// int indent = 0;
+
 // Assumes each underlying object is a sphere
 void hittable_list::compile(int dim) {
     assert(is_leaf == true);
@@ -84,42 +87,60 @@ void hittable_list::compile(int dim) {
     if(objects.size() <= 3){
         // do not split hierarchy
     } else {
-        hittable_list left_split;
-        hittable_list right_split;
+        int dd = rand() % 3;
+        for(int trydim = dd; trydim < dd + 3; trydim++){
+            hittable_list left_split;
+            hittable_list right_split;
 
-        // get median, split in half
-        vector<double> coords;
-        for(shared_ptr<hittable> i : objects){
-            double coord_min = i->get_bounding_box().first.e[dim];
-            double coord_max = i->get_bounding_box().second.e[dim];
+            // get median, split in half
+            vector<double> coords;
+            for(shared_ptr<hittable> i : objects){
+                double coord_min = i->get_bounding_box().first.e[trydim % 3];
+                double coord_max = i->get_bounding_box().second.e[trydim % 3];
 
-            coords.emplace_back((coord_min + coord_max) / 2.0);
-        }
-        double median = coords[coords.size() / 2];
-
-        int left_added = 0;
-        int right_added = 0;
-        for(shared_ptr<hittable> i : objects){
-            if(i->get_bounding_box().first.e[dim] <= median){
-                left_split.add(i);
-                left_added++;
+                coords.emplace_back((coord_min + coord_max) / 2.0);
             }
-            if(i->get_bounding_box().second.e[dim] >= median){
-                right_split.add(i);
-                right_added++;
+            std::nth_element(coords.begin(), coords.begin() + coords.size() / 2, coords.end());
+            double median = coords[coords.size() / 2];
+
+            int left_added = 0;
+            int right_added = 0;
+            for(shared_ptr<hittable> i : objects){
+                if(i->get_bounding_box().first.e[trydim % 3] <= median){
+                    left_split.add(i);
+                    left_added++;
+                }
+                if(i->get_bounding_box().second.e[trydim % 3] >= median){
+                    right_split.add(i);
+                    right_added++;
+                }
             }
-        }
 
-        int n = objects.size();
-        // if the split is good, we make an internal node
-        if(2 * (left_added + right_added) < 3 * n){
-            is_leaf = false;
-            left_split.compile((dim + 1) % 3);
-            right_split.compile((dim + 1) % 3);
+            int n = objects.size();
+            // if the split is good, we make an internal node
+            if(2 * (left_added + right_added) < 3 * n){
+                is_leaf = false;
+                // for(int i = 0; i < indent; i++){
+                //     cerr << ' ';
+                // }
+                // cerr << '+' << '\n';
+                // indent += 1;
+                left_split.compile(trydim % 3);
+                right_split.compile(trydim % 3);
+                // indent -= 1;
 
-            objects = {make_shared<hittable_list>(left_split), make_shared<hittable_list>(right_split)};
+                objects = {make_shared<hittable_list>(left_split), make_shared<hittable_list>(right_split)};
+                break;
+            }
         }
     }
+
+    // if(is_leaf){
+    //     for(int i = 0; i < indent; i++){
+    //         cerr << ' ';
+    //     }
+    //     cerr << '-' << objects.size() << '\n';
+    // }
 
     bool first = true;
     point3 mins;
